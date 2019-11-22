@@ -1,0 +1,16 @@
+import requests
+from bs4 import BeautifulSoup
+
+# Coletar e analisar a primeira página
+page = requests.get('https://www.petlove.com.br/marcas')
+soup = BeautifulSoup(page.text, 'html.parser')
+
+# Pegar todo o texto da div BodyText
+artist_name_list = soup.findAll(class_='static-list-box')
+for artist_name in artist_name_list:
+    artist_name_list_items = artist_name.find_all('a')
+    for artist_name in artist_name_list_items:
+        links = 'https://www.petlove.com.br' + artist_name.get('href')
+        page2 = requests.get(links)
+        soup2 = BeautifulSoup(page.text, 'html.parser')
+        print(soup2.find('catalogJSON'))
