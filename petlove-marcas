@@ -12,25 +12,34 @@ firebase_admin.initialize_app(cred, {
     'databaseURL': 'https://easypet-dev.firebaseio.com'
 })
 
-SUPERHEROES = db.reference('produtos')
+# Referencia no firebase
+produtosRef = db.reference('produtos')
 
 # Coletar e analisar a primeira página
 page = requests.get('https://www.petlove.com.br/marcas')
 soup = BeautifulSoup(page.text, 'html.parser')
 
 # Pegar todo o texto da div BodyText
-artist_name_list = soup.findAll(class_='static-list-box')
-for index, artist_name in enumerate(artist_name_list, start=0):
-    artist_name_list_items = artist_name.find_all('a')
-    for artist_name in artist_name_list_items:
-        links = 'https://www.petlove.com.br' + artist_name.get('href')
-        page2 = requests.get(links)
-        JSON = re.compile('catalogJSON = ({.*?});', re.DOTALL)
+marcas_list = soup.findAll(class_='static-list-box')
 
+# Percorre todas as marcas existentes
+for index, marca_name in enumerate(marcas_list, start=0):
+    # Captura o link para acessos as marcas
+    marcas_list_items = marca_name.find_all('a')
+    
+    # Percore e acessa todos os links capturados
+    for marca_name in marcas_list_items:
+        links = 'https://www.petlove.com.br' + marca_name.get('href')
+        page2 = requests.get(links)
+        # Captura o conteudo na flag catalogJSON;
+        JSON = re.compile('catalogJSON = ({.*?});', re.DOTALL)
+        
+        # Converte o conteudo e converte para JSON
         matches = JSON.search(page2.text)
         if matches:
             categoria = json.loads(matches.group(1))
             if categoria["produtos"]:
                 for produto in categoria["produtos"]:
                     if produto:
-                        SUPERHEROES.push(produto)
+                        # Adiciona o produto no firebase
+                        produtosRef.push(produto)
